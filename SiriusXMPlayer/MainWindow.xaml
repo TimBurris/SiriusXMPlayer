@@ -1,0 +1,33 @@
+﻿<Window
+    x:Class="SiriusXMPlayer.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:SiriusXMPlayer"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+    Title="MainWindow"
+    Width="800"
+    Height="450"
+    Icon="AppLogo.ico"
+    mc:Ignorable="d">
+    <!--
+    //cannot use commandbindings because they only work if the window is focused, we want to respond to media keys even in background
+    <Window.CommandBindings>
+        <CommandBinding
+            CanExecute="Play_CanExecute"
+            Command="MediaCommands.TogglePlayPause"
+            Executed="Play_Executed" />
+        <CommandBinding
+            CanExecute="Play_CanExecute"
+            Command="MediaCommands.Play"
+            Executed="Play_Executed" />
+        <CommandBinding
+            CanExecute="Play_CanExecute"
+            Command="MediaCommands.Pause"
+            Executed="Play_Executed" />
+    </Window.CommandBindings>-->
+
+    <!--  - using webview2 which is a microsoft nuget providing a Microsoft Edge browser.   using plain ole WebBrowser would use IE, which sirius does not support anymore (no one supports IE anymore)  -->
+    <wv2:WebView2 Name="browser" Source="{Binding SiteUrl}" />
+</Window>
