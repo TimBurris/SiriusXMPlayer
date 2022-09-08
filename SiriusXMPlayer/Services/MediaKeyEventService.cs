@@ -10,6 +10,8 @@ using System.Windows.Interop;
 
 namespace Services;
 
+//this class is responsible for createing "hotkeys" using the windows Api so that it can watch for the media key (playpause, nexttrack, and previoustrack)
+//  on start, hook up even handlers for the 3 keys, then on stop detach
 public class MediaKeyEventService : Abstractions.IMediaKeyEventService
 {
 
@@ -33,13 +35,14 @@ public class MediaKeyEventService : Abstractions.IMediaKeyEventService
     private const uint VK_MEDIA_NEXT_TRACK = 0xB0;
     private const uint VK_MEDIA_PREV_TRACK = 0xB1;
     private readonly ILogger<MediaKeyEventService> _logger;
-    private readonly IAppHandleProvider _appHandleProvider;
+    private readonly IAppHandleProvider _appHandleProvider;//this little fella will get us a pointer to the window, which the windows api requires us to provide
 
     [DllImport("user32.dll")]
     private static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
 
     [DllImport("user32.dll")]
     private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+
     private IntPtr _windowHandle;
     private HwndSource? _source;
 
@@ -57,6 +60,8 @@ public class MediaKeyEventService : Abstractions.IMediaKeyEventService
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
+        _logger.LogInformation("Registering the media key hotkeys");
+
         _windowHandle = _appHandleProvider.GetAppHandle();
         _source = HwndSource.FromHwnd(_windowHandle);
         _source.AddHook(HwndHook);
@@ -64,11 +69,14 @@ public class MediaKeyEventService : Abstractions.IMediaKeyEventService
         RegisterHotKey(_windowHandle, PLAY_PAUSE_HOTKEY_ID, MOD_NONE, VK_MEDIA_PLAY_PAUSE);
         RegisterHotKey(_windowHandle, NEXT_TRACK_HOTKEY_ID, MOD_NONE, VK_MEDIA_NEXT_TRACK);
         RegisterHotKey(_windowHandle, PREV_TRACK_HOTKEY_ID, MOD_NONE, VK_MEDIA_PREV_TRACK);
+
         return Task.CompletedTask;
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
     {
+        _logger.LogInformation("Unregistering the media key hotkeys");
+
         _source?.RemoveHook(HwndHook);
         UnregisterHotKey(_windowHandle, PLAY_PAUSE_HOTKEY_ID);
         UnregisterHotKey(_windowHandle, NEXT_TRACK_HOTKEY_ID);
@@ -87,46 +95,16 @@ public class MediaKeyEventService : Abstractions.IMediaKeyEventService
                 switch (wParam.ToInt32())
                 {
                     case PLAY_PAUSE_HOTKEY_ID:
-                        //i don't know why it would be anything else......
-                        int vkey = (((int)lParam >> 16) & 0xFFFF);
-                        if (vkey == VK_MEDIA_PLAY_PAUSE)
-                        {
-                            this.PlayPausePressed?.Invoke(this, EventArgs.Empty);
-                        }
-                        else
-                        {
-                            _logger.LogWarning("something else playpaus hotkey");
-                        }
-
-                        // handled = true;
+                        this.PlayPausePressed?.Invoke(this, EventArgs.Empty);
+                        handled = true;
                         break;
                     case NEXT_TRACK_HOTKEY_ID:
-                        //i don't know why it would be anything else......
-                        int vkey2 = (((int)lParam >> 16) & 0xFFFF);
-                        if (vkey2 == VK_MEDIA_NEXT_TRACK)
-                        {
-                            this.NextTrackPressed?.Invoke(this, EventArgs.Empty);
-                        }
-                        else
-                        {
-                            _logger.LogWarning("something else nexttrack hotkey");
-                        }
-
+                        this.NextTrackPressed?.Invoke(this, EventArgs.Empty);
                         handled = true;
                         break;
 
                     case PREV_TRACK_HOTKEY_ID:
-                        //i don't know why it would be anything else......
-                        int vkey3 = (((int)lParam >> 16) & 0xFFFF);
-                        if (vkey3 == VK_MEDIA_PREV_TRACK)
-                        {
-                            this.PreviousTrackPressed?.Invoke(this, EventArgs.Empty);
-                        }
-                        else
-                        {
-                            _logger.LogWarning("something else prevtrack hotkey");
-                        }
-
+                        this.PreviousTrackPressed?.Invoke(this, EventArgs.Empty);
                         handled = true;
                         break;
                 }
