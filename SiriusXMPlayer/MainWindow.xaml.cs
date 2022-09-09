@@ -15,17 +15,18 @@ public partial class MainWindow : Window
     private const string _siriusNextTrackButtonClassName = "skip-forward-btn";
     private const string _siriusPlayPauseButtonClassName = "play-pause-btn";
 
+    private readonly MainWindowViewModel _viewModel;
     private readonly IMediaKeyEventService _mediaKeyEventService;
     private readonly ILogger<MainWindow> _logger;
 
-    public MainWindow(Jot.Tracker tracker, MainWindowViewModel viewModel,
+    public MainWindow(MainWindowViewModel viewModel,
         Services.Abstractions.IMediaKeyEventService mediaKeyEventService,
         ILogger<MainWindow> logger)
     {
         InitializeComponent();
 
         this.DataContext = viewModel;
-
+        _viewModel = viewModel;
         _mediaKeyEventService = mediaKeyEventService;
         _logger = logger;
 
@@ -35,12 +36,16 @@ public partial class MainWindow : Window
         _mediaKeyEventService.PreviousTrackPressed += _mediaKeyEventService_PreviousTrackPressed;
 
 
-        //tracker is responsible for saving and restoring the window position
-        tracker.Track(this);
+        _viewModel.OnBound();
+
+        //startuplocation does not support binding, so we have to manually set it, we are banking on it not changing after initial load, so we aren't watching for property change
+        this.WindowStartupLocation = _viewModel.WindowStartupLocation;
     }
 
     protected override void OnClosed(EventArgs e)
     {
+        _viewModel.OnUnbound();
+
         if (_mediaKeyEventService != null)
         {
             _mediaKeyEventService.PlayPausePressed -= _mediaKeyEventService_PlayPausePressed;

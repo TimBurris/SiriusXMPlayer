@@ -7,9 +7,11 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
     Title="MainWindow"
-    Width="800"
-    Height="450"
+    Width="{Binding WindowWidth, Mode=TwoWay}"
+    Height="{Binding WindowHeight, Mode=TwoWay}"
     Icon="AppLogo.ico"
+    Left="{Binding WindowLeft, Mode=TwoWay}"
+    Top="{Binding WindowTop, Mode=TwoWay}"
     mc:Ignorable="d">
     <!--
     //cannot use commandbindings because they only work if the window is focused, we want to respond to media keys even in background

@@ -1,10 +1,7 @@
-﻿using Jot;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
-using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -39,7 +36,6 @@ public partial class App : Application
 
             await AppHost.StartAsync();
 
-            SetupWindowTracking();
             logger.LogInformation("start form");
 
             var startupForm = AppHost.Services.GetRequiredService<MainWindow>();
@@ -82,18 +78,6 @@ public partial class App : Application
 
         base.OnExit(e);
 
-    }
-
-    private void SetupWindowTracking()
-    {
-        // 1. tell the tracker how to track Window objects 
-        var tracker = AppHost!.Services.GetRequiredService<Tracker>();
-
-        tracker.Configure<Window>()
-            .Id(w => w.Name)
-            .Properties(w => new { w.Top, w.Width, w.Height, w.Left, w.WindowState })
-            .PersistOn(nameof(Window.Closing))
-            .StopTrackingOn(nameof(Window.Closing));
     }
 
     private void SetupExceptionHandling(ILogger logger)
