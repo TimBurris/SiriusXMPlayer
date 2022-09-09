@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <PackageIcon>AppLogo.png</PackageIcon>
+	<ApplicationIcon>AppLogo.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
