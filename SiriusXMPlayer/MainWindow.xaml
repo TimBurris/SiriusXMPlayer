@@ -5,15 +5,37 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:SiriusXMPlayer"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:tb="http://www.hardcodet.net/taskbar"
     xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
-    Title="MainWindow"
+    Title="{Binding WindowTitle}"
     Width="{Binding WindowWidth, Mode=TwoWay}"
     Height="{Binding WindowHeight, Mode=TwoWay}"
     Icon="AppLogo.ico"
     Left="{Binding WindowLeft, Mode=TwoWay}"
+    ShowInTaskbar="{Binding WindowShowInTaskbar}"
     Top="{Binding WindowTop, Mode=TwoWay}"
+    WindowState="{Binding WindowState}"
     mc:Ignorable="d">
-    <!--
+    <Grid>
+        <tb:TaskbarIcon
+            IconSource="AppLogo.ico"
+            LeftClickCommand="{Binding ToggleMinimizedCommand}"
+            MenuActivation="RightClick"
+            ToolTipText="{Binding WindowTitle}"
+            Visibility="Visible">
+            <tb:TaskbarIcon.ContextMenu>
+                <ContextMenu>
+                    <MenuItem
+                        Command="{Binding ToggleMinimizedCommand}"
+                        FontWeight="Bold"
+                        Header="Show/Hide" />
+                    <Separator />
+                    <MenuItem Click="Exit_MenuItem_Click" Header="Exit" />
+                </ContextMenu>
+            </tb:TaskbarIcon.ContextMenu>
+        </tb:TaskbarIcon>
+
+        <!--
     //cannot use commandbindings because they only work if the window is focused, we want to respond to media keys even in background
     <Window.CommandBindings>
         <CommandBinding
@@ -30,6 +52,7 @@
             Executed="Play_Executed" />
     </Window.CommandBindings>-->
 
-    <!--  - using webview2 which is a microsoft nuget providing a Microsoft Edge browser.   using plain ole WebBrowser would use IE, which sirius does not support anymore (no one supports IE anymore)  -->
-    <wv2:WebView2 Name="browser" Source="{Binding SiteUrl}" />
+        <!--  - using webview2 which is a microsoft nuget providing a Microsoft Edge browser.   using plain ole WebBrowser would use IE, which sirius does not support anymore (no one supports IE anymore)  -->
+        <wv2:WebView2 Name="browser" Source="{Binding SiteUrl}" />
+    </Grid>
 </Window>

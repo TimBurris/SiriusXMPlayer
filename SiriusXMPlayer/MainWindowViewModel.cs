@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System;
 
 namespace SiriusXMPlayer;
 
@@ -53,11 +54,15 @@ public class MainWindowViewModel : NinjaMvvm.NotificationBase
 		_tracker.Persist(this);
 	}
 
+	#region Binding Properties
+
 	public string SiteUrl
 	{
 		get { return GetField<string>(); }
 		set { SetField(value); }
 	}
+
+	public string WindowTitle { get; } = "SiriusXM Player";
 
 	public double? WindowTop
 	{
@@ -86,7 +91,13 @@ public class MainWindowViewModel : NinjaMvvm.NotificationBase
 	public System.Windows.WindowState WindowState
 	{
 		get { return GetField<System.Windows.WindowState>(); }
-		set { SetField(value); }
+		set
+		{
+			if (SetField(value))
+			{
+				this.WindowShowInTaskbar = (value != System.Windows.WindowState.Minimized);//if not minimized we should show it in taskbar
+			}
+		}
 	}
 
 	public System.Windows.WindowStartupLocation WindowStartupLocation
@@ -95,4 +106,105 @@ public class MainWindowViewModel : NinjaMvvm.NotificationBase
 		set { SetField(value); }
 	}
 
+	public bool WindowShowInTaskbar
+	{
+		get { return GetField<bool>(); }
+		set { SetField(value); }
+	}
+
+	#endregion
+
+
+	#region ToggleMinimized Command
+
+	private RelayCommand _toggleMinimizedCommand;
+	public RelayCommand ToggleMinimizedCommand
+	{
+		get
+		{
+			if (_toggleMinimizedCommand == null)
+				_toggleMinimizedCommand = new RelayCommand((param) => this.ToggleMinimized(), (param) => this.CanToggleMinimized());
+			return _toggleMinimizedCommand;
+		}
+	}
+
+	public bool CanToggleMinimized()
+	{
+		return true;
+	}
+
+	/// <summary>
+	/// Executes the ToggleMinimized command 
+	/// </summary>
+	public void ToggleMinimized()
+	{
+		if (this.WindowState == System.Windows.WindowState.Minimized)
+		{
+			this.WindowState = System.Windows.WindowState.Normal;
+		}
+		else
+		{
+			this.WindowState = System.Windows.WindowState.Minimized;
+		}
+	}
+
+	#endregion
+
+
+
+}
+/// <summary>
+/// A command whose sole purpose is to 
+/// relay its functionality to other
+/// objects by invoking delegates. The
+/// default return value for the CanExecute
+/// method is 'true'.
+/// </summary>
+public class RelayCommand<T> : NinjaMvvm.RelayCommandBase<T>
+{
+	public RelayCommand(Action<T> execute) : base(execute) { }
+
+	public RelayCommand(Action<T> execute, Predicate<T> canExecute) : base(execute, canExecute) { }
+
+	public RelayCommand(Action<T> execute, Predicate<T> canExecute, string label) : base(execute, canExecute, label) { }
+
+	public override event EventHandler CanExecuteChanged
+	{
+		add { System.Windows.Input.CommandManager.RequerySuggested += value; }
+		remove { System.Windows.Input.CommandManager.RequerySuggested -= value; }
+	}
+
+	public void Execute(T? parameter)
+	{
+		base.Execute((object?)parameter);
+	}
+
+	public bool CanExecute(T? parameter)
+	{
+		return base.CanExecute((object?)parameter);
+	}
+}
+
+/// <summary>
+/// provides a generic object implementation of <see cref="RelayCommandBase&lt;T&gt;"/>
+/// </summary>
+public class RelayCommand : RelayCommand<object>
+{
+	public RelayCommand(Action execute) : base(new Action<object>((param) => execute())) { }
+	public RelayCommand(Action execute, Func<bool> canExecute) : base(new Action<object>((param) => execute()), new Predicate<object>((param) => canExecute())) { }
+	public RelayCommand(Action<object> execute) : base(execute) { }
+
+	public RelayCommand(Action<object> execute, Predicate<object> canExecute) : base(execute, canExecute) { }
+
+	public RelayCommand(Action<object> execute, Predicate<object> canExecute, string label) : base(execute, canExecute, label) { }
+
+	public void Execute()
+	{
+		base.Execute(parameter: null);
+	}
+
+	public bool CanExecute()
+	{
+		return base.CanExecute(parameter: null);
+	}
 }

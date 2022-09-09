@@ -81,4 +81,9 @@ public partial class MainWindow : Window
         //   that would mean they changed their code and we'll have to adjust this
         var t = browser.ExecuteScriptAsync($"document.getElementsByClassName('{className}')[0].click();");
     }
+
+    private void Exit_MenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        this.Close();
+    }
 }
