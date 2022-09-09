@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
+using System.Diagnostics;
 
 namespace SiriusXMPlayer;
 
@@ -16,6 +17,7 @@ public class MainWindowViewModel : NinjaMvvm.NotificationBase
 		_logger = logger;
 		_tracker = tracker;
 		this.SiteUrl = playerSettings.Value.SiriusXMStartupUrl;
+		this.WebViewDownloadUrl = playerSettings.Value.WebView2DownloadUrl;
 
 		//defaults
 		this.WindowState = System.Windows.WindowState.Normal;
@@ -55,6 +57,12 @@ public class MainWindowViewModel : NinjaMvvm.NotificationBase
 	}
 
 	#region Binding Properties
+
+	public string WebViewDownloadUrl
+	{
+		get { return GetField<string>(); }
+		set { SetField(value); }
+	}
 
 	public string SiteUrl
 	{
@@ -114,19 +122,9 @@ public class MainWindowViewModel : NinjaMvvm.NotificationBase
 
 	#endregion
 
-
 	#region ToggleMinimized Command
 
-	private RelayCommand _toggleMinimizedCommand;
-	public RelayCommand ToggleMinimizedCommand
-	{
-		get
-		{
-			if (_toggleMinimizedCommand == null)
-				_toggleMinimizedCommand = new RelayCommand((param) => this.ToggleMinimized(), (param) => this.CanToggleMinimized());
-			return _toggleMinimizedCommand;
-		}
-	}
+	public RelayCommand ToggleMinimizedCommand => new RelayCommand((param) => this.ToggleMinimized(), (param) => this.CanToggleMinimized());
 
 	public bool CanToggleMinimized()
 	{
@@ -150,61 +148,25 @@ public class MainWindowViewModel : NinjaMvvm.NotificationBase
 
 	#endregion
 
+	#region DownloadWebView Command
 
+	public RelayCommand DownloadWebViewCommand => new RelayCommand((param) => this.DownloadWebView(), (param) => this.CanDownloadWebView());
 
-}
-/// <summary>
-/// A command whose sole purpose is to 
-/// relay its functionality to other
-/// objects by invoking delegates. The
-/// default return value for the CanExecute
-/// method is 'true'.
-/// </summary>
-public class RelayCommand<T> : NinjaMvvm.RelayCommandBase<T>
-{
-	public RelayCommand(Action<T> execute) : base(execute) { }
-
-	public RelayCommand(Action<T> execute, Predicate<T> canExecute) : base(execute, canExecute) { }
-
-	public RelayCommand(Action<T> execute, Predicate<T> canExecute, string label) : base(execute, canExecute, label) { }
-
-	public override event EventHandler CanExecuteChanged
+	public bool CanDownloadWebView()
 	{
-		add { System.Windows.Input.CommandManager.RequerySuggested += value; }
-		remove { System.Windows.Input.CommandManager.RequerySuggested -= value; }
+		return true;
 	}
 
-	public void Execute(T? parameter)
+	/// <summary>
+	/// Executes the DownloadWebView command 
+	/// </summary>
+	public void DownloadWebView()
 	{
-		base.Execute((object?)parameter);
+		var info = new ProcessStartInfo(this.WebViewDownloadUrl);
+		info.UseShellExecute = true;//you have to useshellexecute in .net core
+		Process.Start(info);
 	}
 
-	public bool CanExecute(T? parameter)
-	{
-		return base.CanExecute((object?)parameter);
-	}
-}
+	#endregion
 
-/// <summary>
-/// provides a generic object implementation of <see cref="RelayCommandBase&lt;T&gt;"/>
-/// </summary>
-public class RelayCommand : RelayCommand<object>
-{
-	public RelayCommand(Action execute) : base(new Action<object>((param) => execute())) { }
-	public RelayCommand(Action execute, Func<bool> canExecute) : base(new Action<object>((param) => execute()), new Predicate<object>((param) => canExecute())) { }
-	public RelayCommand(Action<object> execute) : base(execute) { }
-
-	public RelayCommand(Action<object> execute, Predicate<object> canExecute) : base(execute, canExecute) { }
-
-	public RelayCommand(Action<object> execute, Predicate<object> canExecute, string label) : base(execute, canExecute, label) { }
-
-	public void Execute()
-	{
-		base.Execute(parameter: null);
-	}
-
-	public bool CanExecute()
-	{
-		return base.CanExecute(parameter: null);
-	}
 }

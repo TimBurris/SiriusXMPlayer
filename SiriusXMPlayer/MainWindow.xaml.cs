@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Services.Abstractions;
 using System;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace SiriusXMPlayer;
@@ -27,24 +28,55 @@ public partial class MainWindow : Window
 
         this.DataContext = viewModel;
         _viewModel = viewModel;
+        _viewModel.OnBound();
         _mediaKeyEventService = mediaKeyEventService;
         _logger = logger;
 
+        browser.CoreWebView2InitializationCompleted += Browser_CoreWebView2InitializationCompleted;
 
+        this.Loaded += MainWindow_Loaded;
+    }
+
+    private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    {
+        var t = InitializeBrowserAndSetupAsync();
+    }
+
+    private void Browser_CoreWebView2InitializationCompleted(object? sender, Microsoft.Web.WebView2.Core.CoreWebView2InitializationCompletedEventArgs e)
+    {
+        if (!e.IsSuccess)
+        {
+            _logger.LogError(e.InitializationException, "WebView failed to intialize");
+
+            if (e.InitializationException is Microsoft.Web.WebView2.Core.WebView2RuntimeNotFoundException)
+            {
+                browser.Visibility = Visibility.Collapsed;
+                NeedWebViewDownloadPane.Visibility = Visibility.Visible;
+            }
+        }
+    }
+
+    protected async Task InitializeBrowserAndSetupAsync()
+    {
+        await browser.EnsureCoreWebView2Async();
+
+        //webview needs to be initialized before we start doing stuff with it, so that's why this code is here, rather than in ctor
         _mediaKeyEventService.PlayPausePressed += _mediaKeyEventService_PlayPausePressed;
         _mediaKeyEventService.NextTrackPressed += _mediaKeyEventService_NextTrackPressed;
         _mediaKeyEventService.PreviousTrackPressed += _mediaKeyEventService_PreviousTrackPressed;
 
-
-        _viewModel.OnBound();
-
         //startuplocation does not support binding, so we have to manually set it, we are banking on it not changing after initial load, so we aren't watching for property change
         this.WindowStartupLocation = _viewModel.WindowStartupLocation;
+
+        //now that we are initialized, setup the binding
+        browser.SetBinding(Microsoft.Web.WebView2.Wpf.WebView2.SourceProperty, nameof(MainWindowViewModel.SiteUrl));
     }
 
     protected override void OnClosed(EventArgs e)
     {
         _viewModel.OnUnbound();
+        this.Loaded -= MainWindow_Loaded;
+        browser.CoreWebView2InitializationCompleted -= Browser_CoreWebView2InitializationCompleted;
 
         if (_mediaKeyEventService != null)
         {

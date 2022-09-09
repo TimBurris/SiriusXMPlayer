@@ -53,6 +53,22 @@
     </Window.CommandBindings>-->
 
         <!--  - using webview2 which is a microsoft nuget providing a Microsoft Edge browser.   using plain ole WebBrowser would use IE, which sirius does not support anymore (no one supports IE anymore)  -->
-        <wv2:WebView2 Name="browser" Source="{Binding SiteUrl}" />
+        <!--  -Source="{Binding SiteUrl}"   do not bind site until after the control is initialized  -->
+        <wv2:WebView2 Name="browser" />
+        <StackPanel
+            x:Name="NeedWebViewDownloadPane"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Visibility="Collapsed">
+            <Label HorizontalAlignment="Center">Your system is missing the required Microsoft Edge WebView Component</Label>
+            <Label HorizontalAlignment="Center">
+                <Hyperlink Command="{Binding DownloadWebViewCommand}">
+                    <Hyperlink.Inlines>
+                        <Run Text="Download from Microsoft" />
+                    </Hyperlink.Inlines>
+                </Hyperlink>
+            </Label>
+
+        </StackPanel>
     </Grid>
 </Window>
