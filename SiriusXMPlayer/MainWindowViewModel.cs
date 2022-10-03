@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Services.Abstractions;
 using System;
 using System.Diagnostics;
 
@@ -7,17 +8,26 @@ namespace SiriusXMPlayer;
 
 public class MainWindowViewModel : NinjaMvvm.NotificationBase
 {
+
+	private readonly bool _clearCacheOnExit;
+	private readonly string _cachePath;
+
 	private readonly ILogger<MainWindowViewModel> _logger;
+	private readonly IWebViewCacheManager _webViewCacheManager;
 	private readonly Jot.Tracker _tracker;
 
 	public MainWindowViewModel(ILogger<MainWindowViewModel> logger,
 		IOptions<PlayerSettings> playerSettings,
+		Services.Abstractions.IWebViewCacheManager webViewCacheManager,
 		Jot.Tracker tracker)
 	{
 		_logger = logger;
+		_webViewCacheManager = webViewCacheManager;
 		_tracker = tracker;
 		this.SiteUrl = playerSettings.Value.SiriusXMStartupUrl;
 		this.WebViewDownloadUrl = playerSettings.Value.WebView2DownloadUrl;
+		_clearCacheOnExit = playerSettings.Value.ClearCacheOnExit;
+		_cachePath = playerSettings.Value.WebViewCacheFolder;
 
 		//defaults
 		this.WindowState = System.Windows.WindowState.Normal;
@@ -54,6 +64,19 @@ public class MainWindowViewModel : NinjaMvvm.NotificationBase
 	{
 		//persist settings
 		_tracker.Persist(this);
+
+		if (_clearCacheOnExit)
+		{
+			try
+			{
+				_webViewCacheManager.DeleteCache(_cachePath);
+			}
+			catch (Exception ex)
+			{
+				_logger.LogWarning(ex, "Unable to clear cache for cache folder '{cachePath}'", _cachePath);
+			}
+
+		}
 	}
 
 	#region Binding Properties

@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
 using System.IO;
-using System.Text;
-using System.Threading.Tasks;
 using Jot;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -63,6 +59,7 @@ public class HostBuilder
     private static void ConfigureServices(HostBuilderContext context, IServiceCollection services)
     {
         services.AddTransient<Services.Abstractions.IAppHandleProvider, Services.AppHandleProvider>();
+        services.AddTransient<Services.Abstractions.IWebViewCacheManager, Services.WebViewCacheManager>();
         services.AddTransient<MainWindowViewModel>();
 
         //register our PlayerSettings so it can be injected as needed 
