@@ -12,8 +12,8 @@ namespace SiriusXMPlayer;
 public partial class MainWindow : Window
 {
     //these button classes are specific to the HTML for siriusxm. if they change their code we'll have to adjust
-    private const string _siriusPreviousTrackSelector = "button[aria-label='Skip Back']";
-    private const string _siriusNextTrackButtonSelector= "button[aria-label='Skip Forward']";
+    private const string _siriusPreviousTrackSelector = "button[aria-label='Skip back']";
+    private const string _siriusNextTrackButtonSelector = "button[aria-label='Skip forward']";
     private const string _siriusPlayPauseButtonSelector = "button[aria-label='Play'], button[aria-label='Pause']";
 
     private readonly MainWindowViewModel _viewModel;
